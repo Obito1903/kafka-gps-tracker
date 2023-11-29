@@ -55,7 +55,7 @@ def simulate_movement(machine_name, starting_city, kafka_producer):
 
 # Check if the correct number of command-line arguments is provided
 if len(sys.argv) != 3:
-    print("Usage: python script.py <machine_name> <starting_city>")
+    print("Usage: python producers.py <machine_name> <starting_city>")
     sys.exit(1)
 
 machine_name = sys.argv[1]
