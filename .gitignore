@@ -1,0 +1,40 @@
+# Compiled output
+/tracker-front/dist
+/tracker-front/tmp
+/tracker-front/out-tsc
+/tracker-front/bazel-out
+
+# Node
+/tracker-front/node_modules
+/tracker-front/npm-debug.log
+/tracker-front/yarn-error.log
+
+# IDEs and editors
+/tracker-front/.idea/
+/tracker-front/.project
+/tracker-front/.classpath
+/tracker-front/.c9/
+/tracker-front/*.launch
+/tracker-front/.settings/
+/tracker-front/*.sublime-workspace
+
+# Visual Studio Code
+/tracker-front/.vscode/*
+/tracker-front/!.vscode/settings.json
+/tracker-front/!.vscode/tasks.json
+/tracker-front/!.vscode/launch.json
+/tracker-front/!.vscode/extensions.json
+/tracker-front/.history/*
+
+# Miscellaneous
+/tracker-front/.angular/cache
+/tracker-front/.sass-cache/
+/tracker-front/connect.lock
+/tracker-front/coverage
+/tracker-front/libpeerconnection.log
+/tracker-front/testem.log
+/tracker-front/typings
+
+# System files
+/tracker-front/.DS_Store
+/tracker-front/Thumbs.db
