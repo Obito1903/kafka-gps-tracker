@@ -25,21 +25,28 @@ import (
 var k = koanf.New(".")
 
 type GpsEntry struct {
-	Timestamp int64  `json:"timestamp"`
-	Lat       string `json:"lat"`
-	Lng       string `json:"lng"`
-	Name      string `json:"name"`
-	Uuid      string `json:"uuid"`
+	Timestamp int64   `json:"timestamp"`
+	Lat       float64 `json:"lat"`
+	Lng       float64 `json:"lng"`
+	Name      string  `json:"name"`
+	Uuid      string  `json:"uuid"`
 }
 
 func loadConfig() {
 	if err := k.Load(file.Provider("config.yaml"), yaml.Parser()); err != nil {
 		fmt.Printf("error loading config: %v", err)
 	}
-	k.Load(env.Provider("GPS_", ".", func(s string) string {
+
+	kenv := k.Copy()
+
+	kenv.Load(env.Provider("CONS_", ".", func(s string) string {
 		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, "GPS_")), "_", ".", -1)
+			strings.TrimPrefix(s, "CONS_")), "_", ".", -1)
 	}), nil)
+
+	k.Merge(kenv)
+
+	log.Debug().Msgf("%v", k.All())
 
 	switch strings.ToLower(k.String("log.format")) {
 	case "text":
@@ -72,7 +79,7 @@ func runConsumer(db *sql.DB) {
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers":        k.String("kafka.bootstrapServers"),
+		"bootstrap.servers":        k.String("kafka.bootstrap.servers"),
 		"broker.address.family":    "v4",
 		"group.id":                 k.String("kafka.group"),
 		"session.timeout.ms":       6000,

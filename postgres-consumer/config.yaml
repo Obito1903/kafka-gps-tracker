@@ -1,5 +1,6 @@
 kafka:
-  bootstrapServers: 172.17.10.24:9094
+  bootstrap:
+    servers: 172.17.10.24:9094
   topic: gps
   group: gps-consumer
 
