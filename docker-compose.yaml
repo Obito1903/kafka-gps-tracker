@@ -56,7 +56,35 @@ services:
       CONS_POSTGRES_PASSWORD: tracker
       CONS_POSTGRES_DB: tracker
       CONS_LOG_LEVEL: debug
+  front:
+    container_name: front
+    build:
+      context: ./tracker-front
+      dockerfile: Dockerfile
+    ports:
+      - 80:1234
 
+
+  producer1:
+    container_name: producer1
+    build:
+      context: ./kafka_producers
+      dockerfile: Dockerfile
+    environment:
+      KAFKA_IP: kafka:9092
+      KAFKA_TOPIC: gps
+      CITY: Pau
+      HOSTNAME: laptop1
+  producer2:
+    container_name: producer2
+    build:
+      context: ./kafka_producers
+      dockerfile: Dockerfile
+    environment:
+      KAFKA_IP: kafka:9092
+      KAFKA_TOPIC: gps
+      CITY: Pau
+      HOSTNAME: laptop2
 
 volumes:
   kafka_data:

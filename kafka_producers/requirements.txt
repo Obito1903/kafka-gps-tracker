@@ -1,0 +1,2 @@
+geopy
+confluent_kafka

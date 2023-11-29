@@ -7,7 +7,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-const socket = new WebSocket("ws://192.168.155.3:8000/ws")
+const socket = new WebSocket("ws://api:80/ws")
 
 socket.addEventListener("open", () => {
     console.log("WS oppened")
@@ -16,4 +16,4 @@ socket.addEventListener("open", () => {
 socket.addEventListener("message", (event) => {
     let res = JSON.parse(event.data);
     L.marker([res["lat"], res["lng"]]).addTo(map).bindPopup(res["name"]);
-  });
+});
