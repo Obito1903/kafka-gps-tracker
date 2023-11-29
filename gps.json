@@ -1,0 +1,34 @@
+{
+    "properties": {
+        "datetime": {
+            "title": "Datetime",
+            "type": "string"
+        },
+        "lat": {
+            "title": "Lat",
+            "type": "number"
+        },
+        "lng": {
+            "title": "Lng",
+            "type": "number"
+        },
+        "name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "uuid": {
+            "format": "uuid",
+            "title": "Uuid",
+            "type": "string"
+        }
+    },
+    "required": [
+        "lat",
+        "lng",
+        "name",
+        "datetime",
+        "uuid"
+    ],
+    "title": "GPS",
+    "type": "object"
+}
