@@ -6,6 +6,22 @@ import time
 import uuid
 import random
 import json
+import os
+from dotenv import load_dotenv
+import signal 
+
+class GracefulKiller:
+  kill_now = False
+  def __init__(self):
+    signal.signal(signal.SIGINT, self.exit_gracefully)
+    signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+  def exit_gracefully(self, *args):
+    self.kill_now = True
+
+load_dotenv()
+
+KAFKA_ID = os.getenv("KAFKA_ID")
 
 # Function to get coordinates for a given location
 def get_coordinates(location_name):
@@ -30,7 +46,8 @@ def simulate_movement(machine_name, starting_city, kafka_producer):
     current_time = datetime.now()
 
     try:
-        while True:
+        killer = GracefulKiller()
+        while not killer.kill_now:
             print(f"Current Location: {coordinates}")
             message_uuid = str(uuid.uuid4())
 
@@ -72,7 +89,7 @@ if len(sys.argv) != 3:
 machine_name = sys.argv[1]
 starting_city = sys.argv[2]
 
-producer_config = {'bootstrap.servers': '192.168.155.19:9094', 'client.id': machine_name}
+producer_config = {'bootstrap.servers': KAFKA_ID, 'client.id': machine_name}
 kafka_producer = Producer(producer_config)
 
 simulate_movement(machine_name, starting_city, kafka_producer)
