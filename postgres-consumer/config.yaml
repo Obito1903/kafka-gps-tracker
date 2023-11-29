@@ -1,0 +1,18 @@
+kafka:
+  bootstrap:
+    servers: 172.17.10.24:9094
+  topic: gps
+  group: gps-consumer
+
+log:
+  level: debug # debug, info, warn, error, fatal, panic
+  format: text # or json
+
+postgres:
+  host: "172.17.10.24"
+  port: "5432"
+  user: tracker
+  password: tracker
+  database: tracker
+  table: position
+  sslmode: disable
