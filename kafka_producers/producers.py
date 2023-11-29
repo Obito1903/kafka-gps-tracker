@@ -5,6 +5,7 @@ from confluent_kafka import Producer
 import time
 import uuid
 import random
+import json
 
 # Function to get coordinates for a given location
 def get_coordinates(location_name):
@@ -28,10 +29,11 @@ def simulate_movement(machine_name, starting_city, kafka_producer):
 
     current_time = datetime.now()
 
-    machine_uuid = str(uuid.uuid4())
     try:
         while True:
             print(f"Current Location: {coordinates}")
+            message_uuid = str(uuid.uuid4())
+
 
             # Simulate some changes in coordinates
             latitude, longitude = coordinates
@@ -44,13 +46,13 @@ def simulate_movement(machine_name, starting_city, kafka_producer):
                 "name": machine_name,
                 "lng": longitude,
                 "lat": latitude,
-                "timestamp": current_time.timestamp(),
-                "uuid": machine_uuid
+                "timestamp": int(current_time.timestamp()),
+                "uuid": message_uuid
             }
 
             # Produce the message to the Kafka topic
-            kafka_producer.produce('Machines_positions', key=machine_uuid, value=str(message))
-            kafka_producer.poll(0)
+            kafka_producer.produce('gps', key=message_uuid, value=json.dumps(message))
+
             kafka_producer.flush()
 
             time.sleep(5)  # Simulate sending coordinates every  second
