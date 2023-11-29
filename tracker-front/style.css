@@ -1,0 +1,26 @@
+html, body {
+    text-align: center;
+    font-family: Verdana, sans-serif;
+    background: linear-gradient(to top right, #CAF6CA, #D8F8F4);
+}
+
+#map {
+    width: 90vw;
+    max-height: 80vh;
+    border: 3px solid black;
+    border-radius: 15px;
+    margin: auto;
+    aspect-ratio: 1;
+    margin-top: 10px;
+}
+
+h1{
+    background-color: white;
+    border: 3px solid black;
+    border-radius: 25px;
+    width: fit-content;
+    padding: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin: auto;
+}
