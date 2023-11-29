@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1"
+    "axios": "^0.21.1",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.5"
