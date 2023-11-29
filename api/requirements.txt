@@ -2,3 +2,9 @@ fastapi
 pydantic
 uvicorn
 websockets
+sqlalchemy
+databases
+asyncpg
+databases
+typing
+uuid
