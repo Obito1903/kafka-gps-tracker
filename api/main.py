@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, Depends
+from fastapi import FastAPI, WebSocket, Depends, WebSocketDisconnect
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,6 +9,19 @@ from typing import List
 from databases import Database
 from uuid import uuid4, UUID
 from datetime import datetime
+from confluent_kafka import Consumer
+import asyncio, signal
+
+class GracefulKiller:
+    kill_now = False
+
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self, *args):
+        self.kill_now = True
+
 
 Base = declarative_base()
 
@@ -52,6 +65,19 @@ def get_db():
     finally:
         db.close()
 
+def get_c():
+    try:
+        config = {'bootstrap.servers': '192.168.155.19:9094', 'group.id': 'api'}
+        c = Consumer(config)
+        c.subscribe(['gps'])
+        yield c
+    finally:
+        c.close()
+
+def get_msgs(c):
+    while True:
+        yield c.poll(1.0)
+
 
 @api.get("/")
 def root():
@@ -62,3 +88,27 @@ def root():
 def get_gps_data(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     gps_data = db.query(PostgresData).offset(skip).limit(limit).all()
     return gps_data
+
+@api.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket, consumer: Consumer = Depends(get_c)):
+    await websocket.accept()
+    try:
+        killer = GracefulKiller()
+        while not killer.kill_now:
+            # await asyncio.sleep(0.1)
+            msg = consumer.poll(1.0)
+            if msg is None:
+                continue
+            if msg.error():
+                print("Consumer error: {}".format(msg.error()))
+                continue
+            data = msg.value().decode("utf-8")
+            print(data, type(data))
+            # await websocket.send_json(data)
+            # consumer.commit(msg)
+            await websocket.send_text(data)
+            print("sent")
+    except WebSocketDisconnect:
+        await websocket.close()
+    finally:
+        consumer.close()
