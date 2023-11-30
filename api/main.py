@@ -22,6 +22,25 @@ class GracefulKiller:
     def exit_gracefully(self, *args):
         self.kill_now = True
 
+class ConnectionManager:
+    """Class defining socket events"""
+    def __init__(self):
+        """init method, keeping track of connections"""
+        self.active_connections = []
+
+    async def connect(self, websocket: WebSocket):
+        """connect event"""
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        """Direct Message"""
+        await websocket.send_text(message)
+
+    def disconnect(self, websocket: WebSocket):
+        """disconnect event"""
+        self.active_connections.remove(websocket)
+
 
 Base = declarative_base()
 
@@ -44,11 +63,14 @@ class Location(BaseModel):
     uuid: UUID
 
 
+# postregres database -> change to enviroment variable
 DATABASE_URL = "postgresql://tracker:tracker@192.168.155.19:5432/tracker"
 engine = SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=create_engine(DATABASE_URL))
 database = Database(DATABASE_URL)
 
 api = FastAPI()
+
+manager = ConnectionManager()
 
 api.add_middleware(
     CORSMiddleware,
@@ -91,7 +113,7 @@ def get_gps_data(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 
 @api.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, consumer: Consumer = Depends(get_c)):
-    await websocket.accept()
+    await manager.connect(websocket)
     try:
         killer = GracefulKiller()
         while not killer.kill_now:
@@ -104,9 +126,8 @@ async def websocket_endpoint(websocket: WebSocket, consumer: Consumer = Depends(
                 continue
             data = msg.value().decode("utf-8")
             print(data, type(data))
-            # await websocket.send_json(data)
-            # consumer.commit(msg)
             await websocket.send_text(data)
+            # consumer.commit(msg)
             print("sent")
     except WebSocketDisconnect:
         await websocket.close()
