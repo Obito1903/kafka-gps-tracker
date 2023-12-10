@@ -9,8 +9,16 @@ from typing import List
 from databases import Database
 from uuid import uuid4, UUID
 from datetime import datetime
-from confluent_kafka import Consumer
-import asyncio, signal
+from kafka import KafkaConsumer, TopicPartition
+import signal, os, json, time, asyncio, sys
+
+# fetch env variables
+POSTGRES_USER: str = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB: str = os.getenv("POSTGRES_DB")
+POSTGRES_IP: str = os.getenv("POSTGRES_IP")
+KAFKA_IP: str = os.getenv("KAFKA_IP")
+KAFKA_TOPIC: str = os.getenv("KAFKA_TOPIC") or "gps"
 
 class GracefulKiller:
     kill_now = False
@@ -45,7 +53,7 @@ class ConnectionManager:
 Base = declarative_base()
 
 class PostgresData(Base):
-    __tablename__ = "position"
+    __tablename__ = POSTGRES_DB
 
     lat = Column(Float)
     lng = Column(Float)
@@ -64,7 +72,7 @@ class Location(BaseModel):
 
 
 # postregres database -> change to enviroment variable
-DATABASE_URL = "postgresql://tracker:tracker@192.168.155.19:5432/tracker"
+DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_IP}/{POSTGRES_DB}"
 engine = SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=create_engine(DATABASE_URL))
 database = Database(DATABASE_URL)
 
@@ -80,6 +88,10 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
+consumer = KafkaConsumer(bootstrap_servers=KAFKA_IP, group_id="yes", enable_auto_commit=True, auto_offset_reset='earliest', value_deserializer=lambda x: json.loads(x.decode('utf-8')), consumer_timeout_ms=500)
+partition = TopicPartition(KAFKA_TOPIC, 0)
+consumer.assign([partition])
+
 def get_db():
     db = SessionLocal()
     try:
@@ -87,14 +99,6 @@ def get_db():
     finally:
         db.close()
 
-def get_c():
-    try:
-        config = {'bootstrap.servers': '192.168.155.19:9094', 'group.id': 'api'}
-        c = Consumer(config)
-        c.subscribe(['gps'])
-        yield c
-    finally:
-        c.close()
 
 def get_msgs(c):
     while True:
@@ -112,24 +116,18 @@ def get_gps_data(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return gps_data
 
 @api.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, consumer: Consumer = Depends(get_c)):
+async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
-        killer = GracefulKiller()
-        while not killer.kill_now:
-            # await asyncio.sleep(0.1)
-            msg = consumer.poll(1.0)
-            if msg is None:
-                continue
-            if msg.error():
-                print("Consumer error: {}".format(msg.error()))
-                continue
-            data = msg.value().decode("utf-8")
-            print(data, type(data))
-            await websocket.send_text(data)
-            # consumer.commit(msg)
-            print("sent")
+        print("Websocket Connected", file=sys.stderr)
+        while True:
+            print("Fetching..", file=sys.stderr)
+            end_offset = consumer.end_offsets([partition])
+            consumer.seek(partition, list(end_offset.values())[0])
+            for msg in consumer:
+                print("sending..", file=sys.stderr)
+                await websocket.send_text(json.dumps(msg.value))
+                print(msg.value, file=sys.stderr)
+        print("Websocket End", file=sys.stderr)
     except WebSocketDisconnect:
-        await websocket.close()
-    finally:
-        consumer.close()
+        manager.disconnect(websocket)

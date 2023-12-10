@@ -7,7 +7,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-const socket = new WebSocket("ws://api:80/ws")
+const socket = new WebSocket("ws://localhost:8000/ws")
 
 socket.addEventListener("open", () => {
     console.log("WS oppened")

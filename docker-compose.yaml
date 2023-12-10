@@ -56,6 +56,27 @@ services:
       CONS_POSTGRES_PASSWORD: tracker
       CONS_POSTGRES_DB: tracker
       CONS_LOG_LEVEL: debug
+  api:
+    container_name: api
+    depends_on:
+      - kafka
+      - postgres
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - ./api/:/app
+    restart: always
+    environment:
+      DEBUG: 1
+      POSTGRES_USER: tracker
+      POSTGRES_PASSWORD: tracker
+      POSTGRES_DB: tracker
+      POSTGRES_IP: postgres:5432
+      KAFKA_IP: kafka:9092
+      KAFKA_TOPIC: gps
   front:
     container_name: front
     build:
@@ -67,6 +88,10 @@ services:
 
   producer1:
     container_name: producer1
+    depends_on:
+      - kafka
+      - postgres
+    restart: always
     build:
       context: ./kafka_producers
       dockerfile: Dockerfile
@@ -75,16 +100,19 @@ services:
       KAFKA_TOPIC: gps
       CITY: Pau
       HOSTNAME: laptop1
+      DELAY: 1
   producer2:
     container_name: producer2
+    restart: always
     build:
       context: ./kafka_producers
       dockerfile: Dockerfile
     environment:
       KAFKA_IP: kafka:9092
       KAFKA_TOPIC: gps
-      CITY: Pau
+      CITY: Paris
       HOSTNAME: laptop2
+      DELAY: 10
 
 volumes:
   kafka_data:

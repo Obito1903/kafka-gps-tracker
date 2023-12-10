@@ -8,5 +8,6 @@ asyncpg
 databases
 typing
 uuid
-confluent-kafka
-types-confluent-kafka
+kafka-python
+psycopg2-binary
+asyncio
