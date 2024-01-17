@@ -88,7 +88,7 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
-consumer = KafkaConsumer(bootstrap_servers=KAFKA_IP, group_id="yes", enable_auto_commit=True, auto_offset_reset='earliest', value_deserializer=lambda x: json.loads(x.decode('utf-8')), consumer_timeout_ms=500)
+consumer = KafkaConsumer(bootstrap_servers=KAFKA_IP, api_version=(0, 0, 0), group_id="yes", enable_auto_commit=True, auto_offset_reset='earliest', value_deserializer=lambda x: json.loads(x.decode('utf-8')), consumer_timeout_ms=500)
 partition = TopicPartition(KAFKA_TOPIC, 0)
 consumer.assign([partition])
 
