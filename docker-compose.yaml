@@ -43,6 +43,7 @@ services:
       POSTGRES_PASSWORD: tracker
       POSTGRES_DB: tracker
     volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres-data:/var/lib/postgresql/data
   postgres-consumer:
     container_name: postgres-consumer
@@ -94,7 +95,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - 80:1234
-
 
   producer1:
     container_name: producer1
