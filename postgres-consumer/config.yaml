@@ -1,6 +1,6 @@
 kafka:
   bootstrap:
-    servers: 172.17.10.24:9094
+    servers: kafka:9094
   topic: gps
   group: gps-consumer
 
@@ -9,7 +9,7 @@ log:
   format: text # or json
 
 postgres:
-  host: "172.17.10.24"
+  host: "postgres"
   port: "5432"
   user: tracker
   password: tracker
